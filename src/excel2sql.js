@@ -12,15 +12,21 @@ class excel2sql {
     this.output = '';
     this.tableName = '';
 
-    console.log('Valor del primer parámetro:', parameters.input);
-    console.log('Valor del segundo parámetro:', parameters.output);
-    console.log('Valor del tercer parámetro:', parameters.name);
-    
-    return false;
+    let fileName = parameters.input.split('.');
+    if (parameters.output === undefined) {
+      this.output = fileName[0] + '.sql';
+    } else {
+      this.output = parameters.output;
+    }
+
+    if (parameters.name === undefined) {
+      this.tableName = fileName[0];
+    } else {
+      this.tableName = parameters.name
+    }
   }
 
   read() {
-
       const workbook = XLSX.readFile(this.filePath, { raw: true});
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
@@ -41,7 +47,7 @@ class excel2sql {
   }
 
   sqlHeader(array) {
-    let insert = 'INSERT INTO payment_ways (';
+    let insert = 'INSERT INTO ' + this.tableName + ' (';
     insert += array.join(', ');
     insert += ') VALUES';
     return insert;
@@ -83,7 +89,7 @@ class excel2sql {
   }
 
   write() {
-    fs.writeFile("insert.sql", this.sql, (err) => {
+    fs.writeFile(this.output, this.sql, (err) => {
       if (err)
         console.log(colors.red('Error al generar el archivo ' + err));
       else {
