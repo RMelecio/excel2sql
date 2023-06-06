@@ -11,6 +11,8 @@ class excel2sql {
     this.filePath = parameters.input;
     this.output = '';
     this.tableName = '';
+    this.counter = 0;
+    this.headerStatement = null;
 
     let fileName = parameters.input.split('.');
     if (parameters.output === undefined) {
@@ -47,13 +49,18 @@ class excel2sql {
   }
 
   sqlHeader(array) {
-    let insert = 'INSERT INTO ' + this.tableName + ' (';
-    insert += array.join(', ');
-    insert += ') VALUES';
-    return insert;
+    
+      let insert = 'INSERT INTO ' + this.tableName + ' (';
+      insert += array.join(', ');
+      insert += ') VALUES';
+      return insert;
+    
+
+    this.counter--;
   }
 
   sqlFields(array) {
+    console.log(`entro sqlFiueld`)
     array = array.map(field => {
       return field === undefined
         ? 'null'
@@ -68,17 +75,18 @@ class excel2sql {
 
   makeSentences() {
     let preSql = [];
-    this.data.forEach((line, index) => {
-      let residue = index % 1000;
-      let set = Math.trunc(index /1000);
-
-      if (residue === 0 || index === 0) {
-        this.header = this.sqlHeader(line);
-        preSql[set] = [];
-      } else {
-        preSql[set].push(this.sqlFields(line));
-      }
-    });
+      while (this.data[this.counter] !== undefined) {
+        console.log(`this.counter ${this.counter}`);
+        let residue = this.counter % 1000;
+        let set = Math.trunc(this.counter /1000);
+        if (residue === 0 || this.counter === 0) {
+          this.header = this.sqlHeader(this.data[this.counter]);
+          preSql[set] = [];
+        } else {
+          preSql[set].push(this.sqlFields(this.data[this.counter]));
+        }
+        this.counter++;
+    }
 
     this.sql = 'BEGIN TRANSACTION;\n';
     preSql.forEach(set => {
